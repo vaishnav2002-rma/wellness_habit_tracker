@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.models.wellness import WellnessLogCreate, WellnessLogResponse
+from app.models.wellness import WellnessLogCreate, WellnessLogUpdate, WellnessLogResponse
 from app.utils.security import get_current_user
 from app.database import db
 from bson import ObjectId
@@ -77,3 +77,38 @@ async def get_wellness_log_by_date(log_date: str, current_user: dict = Depends(g
         mood=log.get("mood"),
         date=datetime.fromisoformat(log["date"])
     )
+
+# Update wellness log
+@router.put("/{log_id}", response_model=WellnessLogResponse)
+async def update_wellness_log(log_id: str, update_data: WellnessLogUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    log = await wellness_collection.find_one_and_update(
+        {"_id": ObjectId(log_id), "user_id": str(current_user["_id"])},
+        {"$set": update_dict},
+        return_document=True
+    )
+
+    if not log:
+        raise HTTPException(status_code=404, detail="Wellness log not found")
+
+    return WellnessLogResponse(
+        id=str(log["_id"]),
+        user_id=log["user_id"],
+        sleep_hours=log["sleep_hours"],
+        water_intake_liters=log["water_intake_liters"],
+        steps=log["steps"],
+        mood=log.get("mood"),
+        date=datetime.fromisoformat(log["date"])
+    )
+
+# Delete wellness log
+@router.delete("/{log_id}")
+async def delete_wellness_log(log_id: str, current_user: dict = Depends(get_current_user)):
+    result = await wellness_collection.delete_one({"_id": ObjectId(log_id), "user_id": str(current_user["_id"])})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Wellness log not found")
+
+    return {"msg": "Wellness log deleted successfully"}
