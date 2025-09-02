@@ -14,4 +14,4 @@ db = client[DB_NAME]
 users_collection = db["users"]
 blacklist_collection = db["token_blacklist"]
 habits_collection = db["habits"]
-
+habit_logs_collection = db["habit_logs"]

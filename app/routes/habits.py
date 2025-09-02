@@ -1,14 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.models.habit import HabitCreate, HabitUpdate,HabitResponse, HabitListResponse, HabitLogResponse
 from app.utils.security import get_current_user
-from app.database import habits_collection
+from app.database import habits_collection, habit_logs_collection
 from bson import ObjectId
 from datetime import datetime
 
 router = APIRouter(prefix="/habits", tags=["Habits"])
-
-habits_collection = habits_collection["habits"]
-habit_logs_collection = habits_collection["habit_logs"]
 
 # Create a new habit
 @router.post("/", response_model=HabitResponse)
