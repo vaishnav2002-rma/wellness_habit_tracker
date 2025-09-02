@@ -6,6 +6,10 @@ class HabitCreate(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
     frequency: str = Field(..., pattern="^(daily|weekly|monthly)$")
 
+class HabitUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=3, max_length=100)
+    frequency: Optional[str] = Field(None, pattern="^(daily|weekly|monthly)$")
+
 class HabitResponse(BaseModel):
     id: str
     user_id: str
@@ -15,3 +19,9 @@ class HabitResponse(BaseModel):
 
 class HabitListResponse(BaseModel):
     habits: list[HabitResponse]
+
+class HabitLogResponse(BaseModel):
+    habit_id: str
+    user_id: str
+    date: datetime
+    status: str
