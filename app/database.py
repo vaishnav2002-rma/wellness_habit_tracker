@@ -1,5 +1,4 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo import ReturnDocument
 import os
 from dotenv import load_dotenv
 
@@ -14,3 +13,5 @@ db = client[DB_NAME]
 # Collections
 users_collection = db["users"]
 blacklist_collection = db["token_blacklist"]
+habits_collection = db["habits"]
+
