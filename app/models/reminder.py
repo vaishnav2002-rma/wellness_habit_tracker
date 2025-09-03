@@ -9,6 +9,11 @@ class ReminderCreate(BaseModel):
     reminder_time: datetime
     repeat: Optional[str] = Field(None, pattern="^(daily|weekly|none)$")  # repetition rule
 
+class ReminderUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=3, max_length=100)
+    reminder_time: Optional[datetime] = None
+    repeat: Optional[str] = Field(None, pattern="^(daily|weekly|none)$")
+
 class ReminderResponse(BaseModel):
     id: str
     user_id: str

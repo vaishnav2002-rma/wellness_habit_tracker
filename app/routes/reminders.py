@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.models.reminder import ReminderCreate, ReminderResponse
+from app.models.reminder import ReminderCreate, ReminderUpdate, ReminderResponse
 from app.utils.security import get_current_user
 from app.database import db
 from bson import ObjectId
 from datetime import datetime
-from app.utils.scheduler import send_reminder_task
 
 router = APIRouter(prefix="/reminders", tags=["Reminders"])
 
@@ -23,11 +22,6 @@ async def create_reminder(reminder: ReminderCreate, current_user: dict = Depends
         "created_at": datetime.utcnow()
     }
     result = await reminders_collection.insert_one(new_reminder)
-
-    send_reminder_task.apply_async(
-        args=[str(result.inserted_id), reminder.title, reminder.reminder_time.isoformat(), str(current_user["_id"])],
-        eta=reminder.reminder_time  # Schedule execution
-    )
 
     return ReminderResponse(
         id=str(result.inserted_id),
@@ -58,3 +52,38 @@ async def get_reminders(current_user: dict = Depends(get_current_user)):
         ))
     return reminders
 
+# Update reminder
+@router.put("/{reminder_id}", response_model=ReminderResponse)
+async def update_reminder(reminder_id: str, update_data: ReminderUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    reminder = await reminders_collection.find_one_and_update(
+        {"_id": ObjectId(reminder_id), "user_id": str(current_user["_id"])},
+        {"$set": update_dict},
+        return_document=True
+    )
+
+    if not reminder:
+        raise HTTPException(status_code=404, detail="Reminder not found")
+
+    return ReminderResponse(
+        id=str(reminder["_id"]),
+        user_id=reminder["user_id"],
+        title=reminder["title"],
+        reminder_type=reminder["reminder_type"],
+        target_id=reminder.get("target_id"),
+        reminder_time=datetime.fromisoformat(reminder["reminder_time"]) if isinstance(reminder["reminder_time"], str) else reminder["reminder_time"],
+        repeat=reminder.get("repeat"),
+        created_at=reminder["created_at"]
+    )
+
+# Delete reminder
+@router.delete("/{reminder_id}")
+async def delete_reminder(reminder_id: str, current_user: dict = Depends(get_current_user)):
+    result = await reminders_collection.delete_one({"_id": ObjectId(reminder_id), "user_id": str(current_user["_id"])})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Reminder not found")
+
+    return {"msg": "Reminder deleted successfully"}
