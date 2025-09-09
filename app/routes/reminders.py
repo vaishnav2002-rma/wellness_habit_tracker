@@ -5,12 +5,12 @@ from app.database import db
 from bson import ObjectId
 from datetime import datetime
 import asyncio
-import pytz   # ✅ for timezone
+import pytz   # for timezone
 
 router = APIRouter(prefix="/reminders", tags=["Reminders"])
 
 reminders_collection = db["reminders"]
-
+                                
 # Timezone for IST
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -25,9 +25,9 @@ async def send_reminder(reminder_id: str, title: str, reminder_time: datetime, u
     if reminder_time.tzinfo is None:
         reminder_time = IST.localize(reminder_time)
 
-    now = datetime.now(IST)   # ✅ use IST now
+    now = datetime.now(IST)   # use IST now
     delay = (reminder_time - now).total_seconds()
-    if delay > 0:
+    if delay > 0:                  
         await asyncio.sleep(delay)
 
     print(f"[Reminder 🔔] User: {user_id}, Title: {title}, Time: {reminder_time}, ID: {reminder_id}")
@@ -49,12 +49,12 @@ async def create_reminder(
         "target_id": reminder.target_id,
         "reminder_time": reminder.reminder_time.isoformat(),
         "repeat": reminder.repeat,
-        "created_at": datetime.now(IST)   # ✅ store IST time
+        "created_at": datetime.now(IST)   # store IST time
     }
 
     result = await reminders_collection.insert_one(new_reminder)
 
-    # ✅ Schedule background task
+    # Schedule background task
     background_tasks.add_task(
         send_reminder,
         str(result.inserted_id),
@@ -91,7 +91,7 @@ async def get_reminders(current_user: dict = Depends(get_current_user)):
             target_id=doc.get("target_id"),
             reminder_time=datetime.fromisoformat(doc["reminder_time"]),
             repeat=doc.get("repeat"),
-            created_at=doc["created_at"].astimezone(IST)  # ✅ convert to IST on response
+            created_at=doc["created_at"].astimezone(IST)  # convert to IST on response
         ))
     return reminders
 
@@ -108,10 +108,10 @@ async def update_reminder(reminder_id: str, update_data: ReminderUpdate, current
     reminder = await reminders_collection.find_one_and_update(
         {"_id": ObjectId(reminder_id), "user_id": str(current_user["_id"])},
         {"$set": update_dict},
-        return_document=True
+        return_document=True       
     )
 
-    if not reminder:
+    if not reminder:                
         raise HTTPException(status_code=404, detail="Reminder not found")
 
     return ReminderResponse(
@@ -122,7 +122,7 @@ async def update_reminder(reminder_id: str, update_data: ReminderUpdate, current
         target_id=reminder.get("target_id"),
         reminder_time=datetime.fromisoformat(reminder["reminder_time"]) if isinstance(reminder["reminder_time"], str) else reminder["reminder_time"],
         repeat=reminder.get("repeat"),
-        created_at=reminder["created_at"].astimezone(IST)  # ✅ convert to IST on response
+        created_at=reminder["created_at"].astimezone(IST)  # convert to IST on response
     )
 
 

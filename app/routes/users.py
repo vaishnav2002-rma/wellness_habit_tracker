@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from app.models.user import UserResponse, UserUpdate, ChangePasswordRequest
 from app.utils.security import get_current_user, hash_password, verify_password
 from app.database import users_collection, blacklist_collection
