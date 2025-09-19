@@ -10,9 +10,9 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class UserResponse(BaseModel):
-    id: str
-    username: str
+class UserResponse(BaseModel): 
+    id: str                          
+    username: str                       
     email: str
 
 class TokenResponse(BaseModel):
@@ -27,3 +27,4 @@ class UserUpdate(BaseModel):
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(..., min_length=8)
     new_password: str = Field(..., min_length=8, max_length=20)
+    

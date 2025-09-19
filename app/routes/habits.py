@@ -12,7 +12,7 @@ router = APIRouter(prefix="/habits", tags=["Habits"])
 async def create_habit(habit: HabitCreate, current_user: dict = Depends(get_current_user)):
     new_habit = {
         "user_id": str(current_user["_id"]),
-        "name": habit.name,
+        "name": habit.name,      
         "frequency": habit.frequency,
         "created_at": datetime.utcnow()
     }
@@ -108,7 +108,7 @@ async def log_habit_completion(habit_id: str, current_user: dict = Depends(get_c
         "habit_id": habit_id,
         "user_id": str(current_user["_id"]),
         "date": today.isoformat(),
-        "status": "completed"
+        "status": "completed"       
     }
     await habit_logs_collection.insert_one(log_entry)
 
