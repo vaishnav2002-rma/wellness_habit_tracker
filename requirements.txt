@@ -5,8 +5,7 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 pytz
-celery
-redis
+apscheduler
 
 
 
